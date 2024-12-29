@@ -59,8 +59,8 @@ def championship_round():
                 matchs.append(match_info)
                 match_details.extend(statistics_match(events.get('id')))
 
-        send_database(pd.DataFrame(match_details), 'match_details')
-        send_database(pd.DataFrame(matchs), 'matches')
+        send_database(pd.DataFrame(match_details), 'match_details', round_num)
+        send_database(pd.DataFrame(matchs), 'matches', round_num)
         # print(pd.DataFrame(match_details))
         # print(pd.DataFrame(matchs))
 
@@ -92,7 +92,7 @@ def statistics_match(match_id):
     return all_statistics
 
 
-def send_database(df: pd.DataFrame, table: str):
+def send_database(df: pd.DataFrame, table: str, round_num: int):
 
     try:
         load_dotenv()
@@ -113,8 +113,10 @@ def send_database(df: pd.DataFrame, table: str):
 
         with engine.connect() as connection:
             print("Conexão com o Snowflake realizada com sucesso!")
-            df.to_sql(table, con=connection, index=False, if_exists='replace')
-            print(f"Dados enviados para a tabela {table} no Snowflake!")
+            if round_num == 1:
+                df.to_sql(table, con=connection, index=False, if_exists='replace')
+            else:
+                df.to_sql(table, con=connection, index=False, if_exists='append')
 
     except Exception as e:
         print(f"Erro ao conectar ao Snowflake: {e}")
